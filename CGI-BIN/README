@@ -1,0 +1,365 @@
+##############################################################################
+# Counter                       Version 1.1.1                                #
+# Copyright 1996 Matt Wright    mattw@worldwidemart.com                      #
+# Created 10/27/95              Last Modified 4/25/96                        #
+# Scripts Archive at:           http://www.worldwidemart.com/scripts/        #
+##############################################################################
+# If you run into any problems while trying to configure this scripts, help  #
+# is available.  The steps you should take to get the fastest results, are:  #
+#       1) Read this file thoroughly					     #
+#       2) Consult the Matt's Script Archive Frequently Asked Questions:     #
+#               http://www.worldwidemart.com/scripts/faq/		     #
+#       3) If you are still having difficulty installing this script, send   #
+#          e-mail to: scripts-help@tahoenet.com				     #
+#          Include any error messages you are receiving and as much detail   #
+#          as you can so we can spot your problem.  Also include the variable#
+#          configuration block that is located at the top of the script.     #
+#									     #
+# Hopefully we will be able to help you solve your problems.  Thank you.     #
+##############################################################################
+# COPYRIGHT NOTICE                                                           #
+# Copyright 1996 Matthew M. Wright  All Rights Reserved.                     #
+#                                                                            #
+# Counter may be used and modified free of charge by anyone so long as       #
+# this copyright notice and the comments above remain intact.  By using this #
+# code you agree to indemnify Matthew M. Wright from any liability that      #  
+# might arise from it's use.                                                 #  
+#                                                                            #
+# Selling the code for this program without prior written consent is         #
+# expressly forbidden.  In other words, please ask first before you try and  #
+# make money off of my program.                                              #
+#                                                                            #
+# Obtain permission before redistributing this software over the Internet or #
+# in any other medium.	In all cases copyright and header must remain intact.#
+##############################################################################
+
+This counter script is built for users to be able to create a counter 
+program in-lined into their home page without having to use Server Side 
+Includes.
+
+To use this counter program, you will need to go get a program called 
+FLY, which allows an easy interface into the GD graphics library, which 
+is written in C.  I easily compiled fly without any problems on several 
+different machines:  SunOS, OSF 3.2, and more.  You can get FLY at:
+
+http://www.unimelb.edu.au/fly/fly.html
+
+But it is necessary to have this or else my counter program will not work. Version 1.1 of my counter program was written to correspond with version 1.1 of FLY and you will need to upgrade if you are still using version 1.0 of FLY.
+
+My counter program comes with 7 files:
+
+        1) counter.pl      - The Counter Program Itself.
+        2) count.txt       - The data file that holds the counter number.
+        3) access_log      - Log file of accesses to your counter.
+        4) error_log       - Log file of errors your counter has produced.
+        5) html_log.pl     - Produce nice HTML file of access_log.
+	6) bad_referer.gif - The Bad Referer Error Image
+	7) README	   - Detailed Installation Instructions (This file)
+	8) There is also an explanation about digits.
+
+Each file requires something to be done to it.  Below is a description of 
+how to install the counter program and make it work on your system.
+_________________________________________________________________________
+
+                              COUNTER.PL
+                              ==========
+
+This is by far the hardest part of the setup.  There are a lot of options 
+and variables you will need to define and set to proper locations on your 
+system.  Although it may seem as though there are a lot of different 
+variables and options, it adds a lot of flexibility to the counter.  You 
+will need to place this file in the cgi-bin on your server and make sure 
+you chmod it 755 so that it is readable and executable by your server's uid.
+
+#######################################################################
+# Define Variables
+
+	### FILE AND DIRECTORY LOCATIONS, REFERERS ###
+
+$count_file = "/home/user/counter/count.txt";
+	The count file is the file in which the number of accesses will 
+be displayed.  It is not a good idea to edit this file by hand as it can 
+cause pesky new line characters, or may mess up the number.  Use 
+new_count.pl to start with a different number, or simply start with the 
+default value which is 0.
+
+$digit_dir = "/home/user/counter/digits/XXXX";
+	This is the directory that the digits for your counter are in.  
+In this directory, you must have files numbered 0.gif - 9.gif.  They must 
+all be of equal width and height for this counter to work.  I may make it 
+more flexible in the next version.
+
+$access_log = "/home/user/counter/access_log";
+	This counter also comes with the option of having logs with it, 
+including a perl script which will nicely format results into a cool html 
+page.  You don't have to worry about the path to this file if you turn 
+the $uselog variable off, but if you set $uselog to 1, then make sure 
+you have the correct path to a file called access_log and that  this file 
+and the directory it is in is readable and writable by the web server 
+uid.  This means chmod them 777.
+
+$error_log = "/home/user/counter/error_log";
+	This is the same as the access_log above, except for the fact 
+that this file will contain any errors that users may get when trying to 
+access your counter.  This is currently limited to a Time Out and a Bad 
+Referer.  Please note that these should be the paths to your local 
+access_log and error_log files that come with this script. Do not link 
+them to your main error and access_log files.
+
+$flyprog = "/home/user/counter/fly/fly";
+	The fly program is required for this counter program to work.  It 
+is easy to install and once you do, make sure you chmod the 'fly' 
+program file 755 o anyone can execute it and then change the above 
+example path to the path of your real fly program.
+
+$fly_temp = "/home/user/counter/fly_temp.gif";
+	For this script to work it will need to have a temporary file to which it can print commands for fly to execute.  This file will be generated by the script the first time it is run and each time it is run it will be deleted.  Should someone stop the load
+
+
+
+ing process in the middle of execution and this file not get deleted it will just be overwritten the next time the script is called.
+
+$bad_referer_img = "http://your.host.xxx/counter/images/bad_referer.gif";
+	This should be the url to the bad_referer.gif that comes with 
+this package.  It will be the image that is sent out to people if they 
+attempt to access your counter from a page that is not in the @referers 
+variable.
+
+@referers = ("www.host.com","host.com","your.host.com","129.46.75.89");
+	This variable should be set the server names that are allowed to 
+access your counter.  For example, you would want your.host.xxx, 
+www.host.xxx, and possibly the IP numbers as well and any other names 
+under which servers your page can be accessed.
+
+	### IMAGE SETTINGS ###
+
+$width = "15";
+$height = "20";
+	The above two variables should be the width and height for a 
+single image labeled 1 - 9.  They must each have the same width and 
+height.  A future version of this script may allow for you to use 
+different widths and heights, but for now, stick to sets of images that 
+all have the same width and height for each image.  The width and height 
+are given on all of the digits I have at my site, but you may have to 
+download others and manually get the image size if you use outside gifs.
+
+$tp = "X";
+	This will set your transparency color.  If you leave this 
+variable at X, it will assume you don't want to make any color in your 
+images transparent. If you do want to make something transparent, put the 
+rgb color code in for this variable.  If you want to make black 
+transparent, you would set $tp = "0,0,0"; or if you wanted the white color 
+to be transparent you would set $tp = "255,255,255";
+
+$il = "1";
+	You can also have your counter image interlaced.  Set this 
+variable to 1 if you want it interlaced and 0 if you do not.
+
+$frame_width = "3";
+	This counter program also allows you to have a frame around your 
+counter image.  If you want a frame around your counter number, simply 
+set this value to a number greater than 0.  0 will make it so that you do 
+not have a frame.  The numbers represent the width of the frame in pixels.
+
+$frame_color = "255,255,255";
+	If you set your counter to have a frame_width value greater than 0, 
+then you must set this variable to the color that you want your frame to 
+be in.  Colors should be in the rgb color scheme, so again setting this 
+variable to '0,0,0' would give you a black border and setting it to 
+'255,255,255' would give you a white border.
+
+$dot = "X";
+	Setting this value to 1 will cause the script to return a single 
+transparent pixel, and yet your log files will still be updated.  This is 
+useful if you want to be able to use the logging sequence, but don't have 
+server side includes to implement a real logging program.  Users will 
+not even be able to tell that the dot is there.
+
+$logo = "X";
+	This is the same function as $dot, in that it will do the logging 
+for you, without people really noticing a counter, except if you set this 
+value to a url of a real logo or image of some kind, that image will be 
+returned in place of this counter script and the log will be updated with 
+information.
+
+	### OPTIONS ###
+
+$max_time = "7";
+	The max time variable is set to the maximum number of seconds you 
+want your user to wait before receiving the time_out error image.  The 
+error message will be sent out if the counter program is still in use by 
+another client and it has had to wait $max_time seconds for the other 
+client to finish.
+
+$uselog = "1";	# 1 = YES; 0 = NO
+	If you want to use the logging features of this script, set this 
+variable to 1, otherwise turn it to 0.
+
+# Done
+#######################################################################
+
+Congratulations.  You made it through the most difficult file to configure!
+_________________________________________________________________________
+
+                              COUNT.TXT
+                              =========
+
+If you wish to start with a different number than 1, simply open up this 
+file and type in your new counter number.  Then the script will display 
+this number the next time.
+
+_________________________________________________________________________
+
+                              HTML_LOG.PL
+                              ===========
+
+This file can be used to generate a nice HTML 3 Table formatted document 
+of your access_log.  It still looks nice in other browsers  that do not 
+support 3.0 though.  There is a little configuring you will have to do 
+with this file.  The major change in this file from version 1.0 is that you can choose whether you woudl like to be able to access this file through the web or run it at the prompt.  If you have huge stat files you will probably wan tot run it at a unix p
+
+
+
+rompt and redirect the output to a file, so that you don't have to regenerate stats every time you want to view them.  ON the other hand, if you don't have telnet access or dial up access to a unix prompt you will want to set the $web option to 1 so that 
+
+
+
+you can just call this script through the web and it will generate the stats on the fly.
+
+###################################################################
+# Define Variables
+
+$web = 1;
+	This option allows you to configure the script to either run from the web or to be used as a program that you runb at the prompt and redirect output.  If you choose to set this to '1', then you can simply call the program as a web page, however if you ch
+
+
+
+oose to set this to 0, you should run this at the prompt like: 
+
+	html_log.pl > stats.html
+
+$log_file = "/home/user/counter/access_log";
+	This should be defined exactly the same as you defined 
+$access_log in your counter.pl file.  Simply the system path to the 
+access_log file that my counter program creates.
+
+$min_remote = "10";
+	This is the minimum number of accesses a remote host must have 
+for them to make your html list.
+
+$min_agent = "5";
+	This is the minimum number of times a browser must access your 
+page before it shows up in your list of browsers accessing your page.
+
+# Done
+###################################################################
+
+###################################################################
+# Select Options
+
+$expand_agent = 0;      # 0 = NO; 1 = YES
+	If this is set to zero, then the user agents will be grouped by 
+the main portion of their USER_AGENT environment variable.  If you set 
+this to 1, then they will stay as is and you will see several entries of 
+the same browser, but for different platforms.  Setting it to 0 provides a 
+much nicer and more compact read out.
+
+$show_percent = 1;      # 0 = NO; 1 = YES
+	This will allow you to show the percentage that a certain item 
+takes up.  For instance, if you have 5000 accesses to your page and 500 
+of them are from someone else's page, a 10% will be shown next to it, if 
+you set this variable to 1.  Setting it to zero makes it more compact, 
+but in my opinion, setting it to 1 is nice.
+
+$title = "Access Statistics for My Home Page";
+	Title provides the title and heading for your access statistics page.
+
+$title_url = "http://my.domain.xxx/mypage.html";
+	This is the url to the page in which you are showing accesses.  
+For instance, if I have the counter on:  
+http://my.domain.xxx/mypage.html.  You would set this variable to that page.
+
+# Done
+###################################################################
+_________________________________________________________________________
+
+                         ACCESS_LOG & ERROR_LOG
+                         ======================
+
+	These files simply need to be placed in the spot that is 
+indicated in the $access_log and $error_log variables in counter.pl.  
+They also need to be chmoded 777 so that they can be written to by the 
+web server uid.  The directory they are in should also be chmoded 777.
+
+_________________________________________________________________________
+
+                           BAD_REFERER.GIF
+                           ===============
+
+	This image file needs to be placed in the spot indicated by the 
+$bad_referer.gif variables in the counter.pl file.  It needs to be chmoded 744 so that it is readable by everyone and so that the web server can link to them in case of a time out.
+
+_________________________________________________________________________
+
+COUNTER DIGITS
+==============
+
+My program does not currently come with a standard set of digits.  This 
+is because I just haven't had the time to make a bunch of counter 
+images.  There are plenty of places out on the internet that provide free 
+counter images, and all you have to do, is download a set of them, 
+configure the directory they are in, change all the names to 0.gif - 
+9.gif and then get the width and height in pixels.  Many graphics 
+programs can easily do this.  Here are some sites below that have counter 
+digits:
+
+YAHOO
+http://www.yahoo.com/Computers_and_Internet/World_Wide_Web/Programming/Access_Counts/
+They have a lot of links to counter places.
+
+DIGIT MANIA
+http://cervantes.learningco.com/kevin/digits/
+Great counter images, all in one place!
+
+Let me know if you have any problems with the counter images!
+
+CALLING THE SCRIPT
+==================
+
+I accidentally left out the part about how to call this program in my previous release.  You simply can call this program like you would call any other image or background picture.  Examples are shown below:
+
+	<img src="http://www.your.host.xxx/path/to/counter.pl">
+
+That will give you the standard counter image, andyou can put <center> tags around it or position it however you like on your web page.
+
+You can also make your counter the bacground image for your page, although it will probably look pretty tacky, just use:
+
+	<body background="http://www.your.host.xxx/path/to/counter.pl">
+_________________________________________________________________________
+
+HISTORY
+=======
+
+VERSION 1.0	- 11/25/95	- Released the first version of this script.
+VERSION 1.1	- 12/31/95	- Version fixed to run with new version of 				  FLY.
+				- Problems with time outs and images not 				  getting erased partly solved.
+				- Description of how to put the counter 				  image into your web page added.
+				- Other Minor Details Fixed.
+VERSION 1.1.1	- 1/11/96	- Small Bug in HTML_LOG.pl Fixed.
+		- 4/25/96	- URL to Digit Mania Fixed.
+_________________________________________________________________________
+
+Need more help?
+
+	People often have small problems setting up many of my scripts, 
+and that is what led me to create the Matt's Script Archive Frequently 
+Asked Questions.  You can reach this helpful place by pointing your web 
+browser to:
+
+		http://worldwidemart.com/scripts/faq/
+
+	If you encounter a problem that is not in the FAQ, feel free to 
+write to me, and I will do my best to help you solve whatever you are 
+having trouble with.
+_____________________________________________________________________________
+Matt Wright - mattw@worldwidemart.com - http://www.worldwidemart.com/scripts/
