@@ -1,1 +1,1 @@
-<?php include_once("home.htm"); ?>
+<?php include_once("main.htm"); ?>
