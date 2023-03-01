@@ -6,4 +6,4 @@ Please have mercy. It was 1998 and I was a young lad of 15 years.
 
 # You betcha, it is out on the internet again!
 
-<https://calm-river-67292.herokuapp.com/>
+<https://flourishing-lokum-d6ee86.netlify.app/>
